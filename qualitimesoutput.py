@@ -5,13 +5,13 @@ import pandas as pd
 year = 2025
 gp   = "Miami"
 
-# 🔧 1) load the 2024 session to get its grid
+#  load the 2024 session to get its grid
 prev_session = fastf1.get_session(year-1, gp, 'Q')
 prev_session.load()
 # FastF1 puts the final qualifying classification into .results
 grid_2024 = prev_session.results['Abbreviation'].unique()
 
-# — load the 2025 qualifying session as before —
+# load the 2025 qualifying session as before
 session = fastf1.get_session(year, gp, 'Q')
 session.load()
 
@@ -23,7 +23,7 @@ best = (
     .reset_index()
 )
 
-# 🔧 2) filter to only those who were on the 2024 grid
+# filter to only those who were on the 2024 grid
 best = best[ best['Driver'].isin(grid_2024) ]
 
 # Convert to seconds
@@ -53,11 +53,11 @@ code_to_full = {
     "ALB": "Alexander Albon"
 }
 
-# 🔧 3) apply mapping & sort
+# apply mapping & sort
 best['Driver'] = best['Driver'].map(code_to_full)
 best = best.sort_values('QualifyingTime (s)').reset_index(drop=True)
 
-# 🔧 4) build & print the final dict
+# build & print the final dict
 output = {
     "Driver":             best['Driver'].tolist(),
     "QualifyingTime (s)": best['QualifyingTime (s)'].round(3).tolist()
