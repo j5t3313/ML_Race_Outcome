@@ -1,7 +1,7 @@
 import fastf1
 import pandas as pd
 
-# — your 2025 target race —
+# 2025 target race 
 year = 2025
 gp   = "Miami"
 
@@ -11,7 +11,7 @@ prev_session.load()
 # FastF1 puts the final qualifying classification into .results
 grid_2024 = prev_session.results['Abbreviation'].unique()
 
-# load the 2025 qualifying session as before
+# load the 2025 qualifying session
 session = fastf1.get_session(year, gp, 'Q')
 session.load()
 
