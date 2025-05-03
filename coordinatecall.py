@@ -9,10 +9,10 @@ api_key = "apikey"
 
 url = f"http://api.openweathermap.org/geo/1.0/direct?q={city},{state},{country}&limit={limit}&appid={api_key}"
 
-# 1. Send the request
+# Send the request
 response = requests.get(url)
 
-# 2. Check for success
+# Check for success
 if response.status_code == 200:
     # 3. Parse JSON
     data = response.json()
