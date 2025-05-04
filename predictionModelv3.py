@@ -2,6 +2,8 @@ import fastf1
 import pandas as pd
 import numpy as np
 import requests
+import pytz
+from datetime import datetime, timedelta
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error
@@ -71,7 +73,7 @@ merged_data["WetPerformanceFactor"] = merged_data["Driver_x"].map(driver_wet_per
 print(merged_data)
 
 #Forecasted weather data for race using OpenWeatherMap API
-API_KEY = "ec1868068cf40b0970f864c170130e8d" #Replace with your OpenWeatherMap API key
+API_KEY = "apikey" #Replace with your OpenWeatherMap API key
 LAT = "25.7741728" # replace with latitude
 LON = "-80.19362" # replace with longitude
 weather_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric"
@@ -80,28 +82,39 @@ weather_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={LAT}&lon={L
 response = requests.get(weather_url)
 weather_data = response.json()
 
-#Extract the relevant weather data for the race (date, local race time)
-forecast_time = "2025-05-04 16:00:00"
-forecast_data = None
-for forecast in weather_data["list"]:
-    if forecast["dt_txt"] == forecast_time:
-        forecast_data = forecast
-        break
+def parse_dt_utc(forecast):
+    dt = datetime.strptime(forecast["dt_txt"], "%Y-%m-%d %H:%M:%S")
+    return pytz.UTC.localize(dt)
 
-#Extract the weather features(Rain probability, temperature)
-if forecast_data:
-    rain_probability = forecast_data["pop"]  # Rain Probability (0-1 scale)
-    temperature = forecast_data["main"]["temp"]  # Temperature in Celsius
+# local → UTC conversion
+local_tz   = pytz.timezone("America/Chicago")
+race_local = local_tz.localize(datetime(2025, 5, 4, 16, 0, 0))
+race_utc   = race_local.astimezone(pytz.UTC)
+
+# pick the forecast closest in time
+closest = min(
+    weather_data["list"],
+    key=lambda f: abs(parse_dt_utc(f) - race_utc)
+)
+
+# require it to be within 2 hours
+if abs(parse_dt_utc(closest) - race_utc) < timedelta(hours=2):
+    forecast_data = closest
 else:
-    rain_probability = 0 # Default if no data is found
-    temperature = 28  # Assume Avg Temperature
+    forecast_data = None
 
-# Create weather features for the model
+if forecast_data:
+    rain_probability = forecast_data["pop"]
+    temperature      = forecast_data["main"]["temp"]
+else:
+    rain_probability = 0
+    temperature      = 28
+
 merged_data["RainProbability"] = rain_probability
-merged_data["Temperature"] = temperature
+merged_data["Temperature"]     = temperature
 
 
-# Load Sprint if it exists otherwise FP2    
+# Load Sprint if it exists otherwise FP2 for race pace and tyre deg analysis    
 try:
     sess_p = fastf1.get_session(2025, "Miami", "S")
     sess_p.load()
@@ -118,13 +131,13 @@ lapsp = sess_p.laps[
     sess_p.laps['LapTime'].notna()
 ].copy()
 
-# convert times to seconds for convenience  
+# convert times to seconds  
 lapsp['LapTime_s'] = lapsp['LapTime'].dt.total_seconds()
 
 # Race pace: mean lap time per driver
 race_pace = lapsp.groupby('Driver')['LapTime_s'].mean()
 
-# Tire degradation: average stint‐by‐stint slope  
+# Tyre degradation: average stint‐by‐stint slope  
 def stint_slope(stint_df):
     t = stint_df['LapTime_s'].values
     if len(t) < 2:
@@ -141,7 +154,7 @@ deg = (
     .mean()
 )
 
-# Bring those back into merged_data via the 3-letter codes —  
+# Bring those back into merged_data via the 3-letter codes   
 merged_data['RacePace'] = merged_data['DriverCode'].map(race_pace)
 merged_data['TireDeg']   = merged_data['DriverCode'].map(deg)
 
