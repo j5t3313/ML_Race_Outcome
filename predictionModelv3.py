@@ -24,8 +24,7 @@ sector_times_2024 = laps_2024.groupby("Driver")[["Sector1Time (s)", "Sector2Time
 
 # 2025 Qualifying Data (Keeping Only 2024 Drivers)
 qualifying_2025 = pd.DataFrame({
-    'Driver': ['Max Verstappen', 'Lando Norris', 'Oscar Piastri', 'Charles Leclerc', 'George Russell', 'Lewis Hamilton', 'Alexander Albon', 'Pierre Gasly', 'Carlos Sainz Jr.', 'Fernando Alonso', 'Yuki Tsunoda', 'Nico Hülkenberg', 'Esteban Ocon', 'Lance Stroll'], 'QualifyingTime (s)': [86.983, 86.995, 87.027, 87.299, 87.318, 87.61, 87.615, 87.822, 87.836, 87.897, 87.967, 88.57, 88.696, 89.271]
-})
+    'Driver': ['Max Verstappen', 'Lando Norris', 'Oscar Piastri', 'George Russell', 'Carlos Sainz Jr.', 'Alexander Albon', 'Charles Leclerc', 'Esteban Ocon', 'Yuki Tsunoda', 'Lewis Hamilton', 'Nico Hülkenberg', 'Fernando Alonso', 'Pierre Gasly', 'Lance Stroll'], 'QualifyingTime (s)': [86.204, 86.269, 86.269, 86.385, 86.569, 86.682, 86.754, 86.824, 86.943, 87.006, 87.473, 87.604, 87.71, 87.83]})
 
 # Map full names to FastF1 3-letter codes
 driver_mapping = {
@@ -190,22 +189,18 @@ qualifying_2025 = qualifying_2025[
     qualifying_2025["DriverCode"].isin(valid_codes)
 ].reset_index(drop=True)
 
-# Predict on X (which has the same order/length as qualifying_2025)
-predicted_race_times = model.predict(X)
+# predict and assign:
+qualifying_2025["PredictedRaceTime (s)"] = model.predict(X)
 
-# Safely assign back
-qualifying_2025["PredictedRaceTime (s)"] = predicted_race_times
-
-# Sort & print
-qualifying_2025 = qualifying_2025.sort_values("PredictedRaceTime (s)")
+# sort, then print:
+qualifying_2025 = (
+    qualifying_2025
+    .sort_values("PredictedRaceTime (s)")
+    .reset_index(drop=True)
+)
+    
 print(qualifying_2025[["Driver", "PredictedRaceTime (s)"]])
 
-# Predict race times using 2025 qualifying and sector data
-predicted_race_times = model.predict(X)
-qualifying_2025["PredictedRaceTime (s)"] = predicted_race_times
-
-# Rank drivers by predicted race time
-qualifying_2025 = qualifying_2025.sort_values(by="PredictedRaceTime (s)")
 
 # Print final predictions
 print("\n🏁 Predicted 2025 Miami GP Winner (Excluding Rookies)🏁\n")
