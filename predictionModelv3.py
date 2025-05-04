@@ -71,7 +71,7 @@ merged_data["WetPerformanceFactor"] = merged_data["Driver_x"].map(driver_wet_per
 print(merged_data)
 
 #Forecasted weather data for race using OpenWeatherMap API
-API_KEY = "apikey" #Replace with your OpenWeatherMap API key
+API_KEY = "ec1868068cf40b0970f864c170130e8d" #Replace with your OpenWeatherMap API key
 LAT = "25.7741728" # replace with latitude
 LON = "-80.19362" # replace with longitude
 weather_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={LAT}&lon={LON}&appid={API_KEY}&units=metric"
@@ -80,7 +80,7 @@ weather_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={LAT}&lon={L
 response = requests.get(weather_url)
 weather_data = response.json()
 
-#Extract the relevant weather data for the race (Sunday, 1400 hrs Local time)
+#Extract the relevant weather data for the race (date, local race time)
 forecast_time = "2025-05-04 16:00:00"
 forecast_data = None
 for forecast in weather_data["list"]:
@@ -101,7 +101,7 @@ merged_data["RainProbability"] = rain_probability
 merged_data["Temperature"] = temperature
 
 
-# Load Sprint if it exists otherwise FP2 2024   
+# Load Sprint if it exists otherwise FP2    
 try:
     sess_p = fastf1.get_session(2025, "Miami", "S")
     sess_p.load()
@@ -184,7 +184,7 @@ model.fit(X_train, y_train)
 # Figure out which codes actually made it into merged_data/X
 valid_codes = merged_data["DriverCode"].unique().tolist()
 
-# Filter your original qualifying_2025 to only those drivers so that it lines up 1:1 with the rows in X
+# Filter qualifying_2025 to only those drivers so that it lines up 1:1 with the rows in X
 qualifying_2025 = qualifying_2025[
     qualifying_2025["DriverCode"].isin(valid_codes)
 ].reset_index(drop=True)
@@ -198,10 +198,6 @@ qualifying_2025 = (
     .sort_values("PredictedRaceTime (s)")
     .reset_index(drop=True)
 )
-    
-print(qualifying_2025[["Driver", "PredictedRaceTime (s)"]])
-
-
 # Print final predictions
 print("\n🏁 Predicted 2025 Miami GP Winner (Excluding Rookies)🏁\n")
 print(qualifying_2025[["Driver", "PredictedRaceTime (s)"]])
