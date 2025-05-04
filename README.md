@@ -13,6 +13,7 @@ Data Sources <br/>
 FastF1 API: Fetches lap times, race results, and telemetry data <br/>
 2025 Qualifying Data: Used for prediction <br/>
 Historical F1 Results: Processed from FastF1 for training the model<br/> 
+Open Weather API: Weather forecast data
 
 How It Works<br/>
 Data Collection: The script pulls relevant F1 data using the FastF1 API. <br/>
