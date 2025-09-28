@@ -24,7 +24,7 @@ class RaceConfig:
     year: int = 2025
     gp_name: str = 'Canadian GP'
     min_stint_laps: int = 7
-    api_key: str = "ec1868068cf40b0970f864c170130e8d"
+    api_key: str = "APIKEY" # enter you OpenWeather Api Key 
     test_size: float = 0.3
     random_state: int = 42
     cache_dir: Optional[str] = None
@@ -643,4 +643,5 @@ def main():
     RaceAnalyzer.visualize_predictions(race_results, clean_air_pace)
 
 if __name__ == "__main__":
+
     main()
